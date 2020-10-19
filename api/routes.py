@@ -1,6 +1,4 @@
-from flask import Flask, jsonify
-
-app = Flask(__name__)
+from flask import Flask, jsonify, current_app as app
 
 products = [
     {
@@ -18,9 +16,7 @@ def get_products():
     return jsonify(products)
 
 
-@app.route('/products', method=['POST'])
-def put_products():
+# @app.route('/products', method=['POST'])
+# def put_products():
     
 
-if __name__ == "__main__":
-    app.run(debug=True)
