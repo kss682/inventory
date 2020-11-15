@@ -1,15 +1,31 @@
 from flask import Flask, jsonify, current_app as app
 from flask_restful import Api, Resource, reqparse
-from api.serializers import ProductSchema, WarehouseSchema, ProductMovementSchema, InventorySchema
-from api.models import db, Product, Warehouse, ProductMovement, Inventory
+from api.serializers import (
+    ProductSchema, 
+    StoreSchema,
+    BillSchema,
+    WarehouseSchema, 
+    ProductMovementSchema, 
+    InventorySchema
+)
+from api.models import (
+    db, 
+    Product, 
+    Store,
+    Bill,
+    Warehouse, 
+    ProductMovement, 
+    Inventory
+)
 
 api = Api(app)
 
-class ProductApi(Resource):
 
+class ProductApi(Resource):
     def __init__(self):
         self.reqparser = reqparse.RequestParser()
         self.reqparser.add_argument('name', type=str, required=True)
+        self.reqparser.add_argument('cost', type=float, required=True)
 
     def get(self):
         products = Product.query.all()
@@ -19,9 +35,47 @@ class ProductApi(Resource):
     def post(self):
         product_data = self.reqparser.parse_args() 
         product = Product(       
-            name=product_data['name']
+            name=product_data['name'],
+            cost=product_data['cost']
         )
         db.session.add(product)
+        db.session.commit()
+        return jsonify({"status_code": 201})
+
+
+class StoreApi(Resource):
+    def __init__(self):
+        self.reqparser = reqparse.RequestParser()
+        self.reqparser.add_argument('prod_name', type=str, required=True)
+        self.reqparser.add_argument('quantity', type=int, required=True)
+    
+    def get(self):
+        store_items = Store.query.all()
+        store_schemas = StoreSchema(many=True)
+        return jsonify(store_schemas.dump(store_items))
+
+    def post(self):
+        pass
+
+
+class BillApi(Resource):
+    def __init__(self):
+        self.reqparser = reqparse.RequestParser()
+        self.reqparser.add_argument('items', type=dict, required=True)
+        self.reqparser.add_argument('total_cost', type=float)
+    
+    def get(self):
+        bill = Bill.query.all()
+        bill_schema = BillSchema(many=True)
+        return jsonify(bill_schema.dump(bill))
+    
+    def post(self):
+        bill_data = self.reqparser.parse_args()
+        bill = Bill(
+            items=bill_data['items'],
+            total_cost=bill_data['total_cost']
+        )
+        db.session.add(bill)
         db.session.commit()
         return jsonify({"status_code": 201})
 
@@ -48,7 +102,6 @@ class WarehouseApi(Resource):
 
 
 class ProductMovementApi(Resource):
-
     def __init__(self):
         self.reqparser = reqparse.RequestParser()
         self.reqparser.add_argument('product_name', type=str, required=True)
@@ -100,6 +153,7 @@ class InventoryApi(Resource):
 
 
 api.add_resource(ProductApi, '/products', endpoint='products')
+api.add_resource(StoreApi, '/store', endpoint='store')
 api.add_resource(WarehouseApi, '/warehouses', endpoint='warehouses')
 api.add_resource(ProductMovementApi, '/productmovement', endpoint='productmovements')
 api.add_resource(InventoryApi, '/inventory', endpoint='inventory')

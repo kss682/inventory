@@ -8,6 +8,16 @@ class ProductSchema(ma.Schema):
         fields = ('id', 'name')
 
 
+class StoreSchema(ma.Schema):
+    class Meta:
+        fields = ('prod_name', 'quantity')
+
+
+class BillSchema(ma.Schema):
+    class Meta:
+        fields = ('id', 'items', 'total_cost')
+
+
 class WarehouseSchema(ma.Schema):
     class Meta:
         fields = ('id', 'location')
